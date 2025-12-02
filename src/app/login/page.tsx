@@ -8,45 +8,36 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useAuth } from '@/firebase';
-import {
-  getRedirectResult,
-  GoogleAuthProvider,
-  signInWithRedirect,
-} from 'firebase/auth';
+import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
-  const auth = useAuth();
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const supabase = createClient();
 
   useEffect(() => {
-    if (!auth) return;
-
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          router.push('/admin');
-        } else {
-          setLoading(false);
-        }
-      })
-      .catch((error) => {
-        console.error('Error getting redirect result', error);
-        setLoading(false);
-      });
-  }, [auth, router]);
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        router.push('/admin');
+      }
+    };
+    checkUser();
+  }, [router, supabase]);
 
   const handleGoogleSignIn = async () => {
-    if (!auth) return;
     setLoading(true);
-    const provider = new GoogleAuthProvider();
-    await signInWithRedirect(auth, provider);
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${location.origin}/auth/callback`,
+      },
+    });
   };
-  
+
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">

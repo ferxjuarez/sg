@@ -1,26 +1,35 @@
 'use client';
 
-import { useUser } from '@/firebase';
+import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, LogOut } from 'lucide-react';
-import { getAuth, signOut } from 'firebase/auth';
+import type { User } from '@supabase/supabase-js';
 
 export default function AdminPage() {
-  const { user, loading } = useUser();
   const router = useRouter();
+  const supabase = createClient();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [user, loading, router]);
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/login');
+      } else {
+        setUser(user);
+      }
+      setLoading(false);
+    };
+    getUser();
+  }, [router, supabase]);
 
   const handleSignOut = async () => {
-    const auth = getAuth();
-    await signOut(auth);
+    await supabase.auth.signOut();
     router.push('/login');
+    router.refresh();
   };
 
   if (loading || !user) {
@@ -38,7 +47,7 @@ export default function AdminPage() {
           <h1 className="font-headline text-4xl font-bold md:text-5xl">
             Panel de Administración
           </h1>
-          <p className="text-muted-foreground">Bienvenido, {user.displayName || user.email}</p>
+          <p className="text-muted-foreground">Bienvenido, {user.user_metadata.full_name || user.email}</p>
         </div>
         <Button variant="outline" onClick={handleSignOut}>
           <LogOut className="mr-2" />
