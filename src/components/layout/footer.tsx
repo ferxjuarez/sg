@@ -3,9 +3,6 @@
 
 import Link from 'next/link';
 import { Car, Instagram, Facebook, Twitter } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
 export function Footer() {
@@ -25,7 +22,7 @@ export function Footer() {
 
   return (
     <footer className="w-full border-t bg-card">
-      <div className="container mx-auto grid max-w-screen-2xl gap-8 py-12 md:grid-cols-2 lg:grid-cols-4">
+      <div className="container mx-auto grid max-w-screen-2xl gap-8 px-4 py-12 sm:grid-cols-2 md:grid-cols-4">
         <div className="flex flex-col gap-4">
           <Link href="/" className="flex items-center space-x-2">
             <Car className="h-8 w-8 text-primary" />
@@ -76,37 +73,18 @@ export function Footer() {
             Cotización
           </Link>
         </div>
-
-        <div className="lg:col-span-2">
-          <h3 className="mb-2 font-headline font-semibold">Contáctanos</h3>
-          <form onSubmit={handleContactSubmit} className="flex flex-col gap-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input
-                type="text"
-                placeholder="Nombre"
-                required
-                aria-label="Nombre"
-              />
-              <Input
-                type="email"
-                placeholder="Email"
-                required
-                aria-label="Email"
-              />
-            </div>
-            <Textarea
-              placeholder="Tu mensaje"
-              required
-              aria-label="Tu mensaje"
-            />
-            <Button type="submit" className="w-full self-end sm:w-auto">
-              Enviar Mensaje
-            </Button>
-          </form>
+        <div className="flex flex-col gap-2">
+          <h3 className="font-headline font-semibold">Empresa</h3>
+          <Link
+            href="/admin"
+            className="text-muted-foreground transition-colors hover:text-primary"
+          >
+            Admin
+          </Link>
         </div>
       </div>
       <div className="border-t">
-        <div className="container mx-auto flex items-center justify-center py-4 text-sm text-muted-foreground">
+        <div className="container mx-auto flex items-center justify-center px-4 py-4 text-sm text-muted-foreground">
           <p>
             &copy; {new Date().getFullYear()} Machado Automotive Excellence.
             Todos los derechos reservados.

@@ -1,54 +1,33 @@
-
 'use server';
 
 import { z } from 'zod';
-import { aiEnhancedQuotation } from '@/ai/flows/ai-enhanced-quotation';
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ACCEPTED_IMAGE_TYPES = [
-  'image/jpeg',
-  'image/jpg',
-  'image/png',
-  'image/webp',
-];
 
 const FormSchema = z.object({
+  name: z.string().min(2, { message: 'El nombre es requerido.' }),
+  email: z.string().email({ message: 'Por favor, introduce un email válido.' }),
   description: z
     .string()
     .min(10, { message: 'La descripción debe tener al menos 10 caracteres.' }),
-  photo: z
-    .any()
-    .refine((file) => file?.size > 0, 'Se requiere una foto del daño.')
-    .refine(
-      (file) => file?.size <= MAX_FILE_SIZE,
-      'El tamaño máximo de la imagen es 5MB.'
-    )
-    .refine(
-      (file) => ACCEPTED_IMAGE_TYPES.includes(file?.type),
-      'Solo se aceptan formatos .jpg, .jpeg, .png y .webp.'
-    ),
 });
 
 export interface QuoteState {
   message?: string;
-  result?: {
-    suggestedServices: string[];
-    estimatedQuote: string;
-  };
   errors?: {
+    name?: string[];
+    email?: string[];
     description?: string[];
-    photo?: string[];
     _form?: string[];
   };
 }
 
-export async function getEnhancedQuote(
+export async function getQuote(
   prevState: QuoteState,
   formData: FormData
 ): Promise<QuoteState> {
   const validatedFields = FormSchema.safeParse({
+    name: formData.get('name'),
+    email: formData.get('email'),
     description: formData.get('description'),
-    photo: formData.get('photo'),
   });
 
   if (!validatedFields.success) {
@@ -58,28 +37,26 @@ export async function getEnhancedQuote(
     };
   }
 
-  const { description, photo } = validatedFields.data;
+  const { name, email, description } = validatedFields.data;
+
+  // En una aplicación real, aquí enviarías un correo electrónico.
+  // Por ahora, solo simularemos el éxito.
+  console.log('Nueva solicitud de cotización:');
+  console.log('Nombre:', name);
+  console.log('Email:', email);
+  console.log('Descripción:', description);
 
   try {
-    const buffer = Buffer.from(await photo.arrayBuffer());
-    const photoDataUri = `data:${photo.type};base64,${buffer.toString(
-      'base64'
-    )}`;
-
-    const result = await aiEnhancedQuotation({
-      description,
-      photoDataUri,
-    });
-
+    // Aquí iría la lógica para enviar el email.
+    // Por ejemplo, usando Nodemailer, Resend, etc.
     return {
-      message: 'Cotización generada exitosamente.',
-      result: result,
+      message: 'Solicitud recibida exitosamente.',
     };
   } catch (error) {
-    console.error('AI Quotation Error:', error);
+    console.error('Quote Error:', error);
     return {
       message:
-        'No se pudo generar la cotización. Por favor, inténtelo de nuevo más tarde.',
+        'No se pudo enviar la solicitud. Por favor, inténtelo de nuevo más tarde.',
       errors: { _form: ['Error del servidor al procesar la solicitud.'] },
     };
   }
