@@ -1,3 +1,64 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-background",
+      "description": "Sleek black sports car in a modern garage",
+      "imageUrl": "https://images.unsplash.com/photo-1592853625597-7d17be820d0c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8c3BvcnRzJTIwY2FyfGVufDB8fHx8MTc2NDY2ODU3NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sports car"
+    },
+    {
+      "id": "service-dent-repair",
+      "description": "Close-up of a car door with a small dent before repair",
+      "imageUrl": "https://images.unsplash.com/photo-1484136540910-d66bb475348d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjYXIlMjBkZW50fGVufDB8fHx8MTc2NDY3NDk0NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "car dent"
+    },
+    {
+      "id": "service-polishing",
+      "description": "Hood of a car shining after a professional polish",
+      "imageUrl": "https://images.unsplash.com/photo-1637300417161-bff1e04ea9f6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwb2xpc2hlZCUyMGNhcnxlbnwwfHx8fDE3NjQ2NzQ5NDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "polished car"
+    },
+    {
+      "id": "technician-bio",
+      "description": "Portrait of a professional mechanic in a workshop",
+      "imageUrl": "https://images.unsplash.com/photo-1656156775155-7404564589e4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxtZWNoYW5pYyUyMHBvcnRyYWl0fGVufDB8fHx8MTc2NDU2Njk4N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "mechanic portrait"
+    },
+    {
+      "id": "gallery-1",
+      "description": "Flawless red car after paint correction",
+      "imageUrl": "https://images.unsplash.com/photo-1593699199342-59b40e08f0ac?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y2FyJTIwcmVwYWlyfGVufDB8fHx8MTc2NDYzMTg1M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "car repair"
+    },
+    {
+      "id": "gallery-2",
+      "description": "Side view of a blue luxury car after dent removal",
+      "imageUrl": "https://images.unsplash.com/photo-1610099610040-ab19f3a5ec35?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bHV4dXJ5JTIwY2FyfGVufDB8fHx8MTc2NDU4NDY4M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "luxury car"
+    },
+    {
+      "id": "gallery-3",
+      "description": "Close-up on a perfectly polished black car panel",
+      "imageUrl": "https://images.unsplash.com/photo-1666009419871-c8bee023574e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYXIlMjBwYWludHxlbnwwfHx8fDE3NjQ2NzQ5NDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "car paint"
+    },
+    {
+      "id": "gallery-4",
+      "description": "White SUV looking new after a full detailing service",
+      "imageUrl": "https://images.unsplash.com/photo-1652509860229-c8c8cd33def1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxzdXYlMjBkZXRhaWxpbmd8ZW58MHx8fHwxNzY0Njc0OTQ0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "suv detailing"
+    },
+    {
+      "id": "gallery-5",
+      "description": "A classic car restored to its original glory",
+      "imageUrl": "https://images.unsplash.com/photo-1591293835940-934a7c4f2d9b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjbGFzc2ljJTIwY2FyfGVufDB8fHx8MTc2NDY2MTUxMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "classic car"
+    },
+    {
+      "id": "gallery-6",
+      "description": "Motorcycle gas tank after custom polishing",
+      "imageUrl": "https://images.unsplash.com/photo-1749291436739-f8d160f07f46?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxtb3RvcmN5Y2xlJTIwcG9saXNofGVufDB8fHx8MTc2NDY3NDk0NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "motorcycle polish"
+    }
+  ]
 }
