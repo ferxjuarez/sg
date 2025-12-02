@@ -63,7 +63,7 @@ export default function Home() {
             <Card className="overflow-hidden">
               <CardHeader>
                 <div className="flex items-center gap-4">
-                  <div className="rounded-md bg-primary p-3 text-primary-foreground">
+                  <div className="rounded-md bg-accent p-3 text-accent-foreground">
                     <Hammer className="h-8 w-8" />
                   </div>
                   <CardTitle className="font-headline text-2xl">
@@ -88,21 +88,21 @@ export default function Home() {
                 </p>
                 <ul className="space-y-2 text-sm text-foreground">
                   <li className="flex items-start gap-2">
-                    <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-accent-foreground" />
+                    <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                     <span>
                       <strong>Método No Invasivo:</strong> Preservamos la
                       pintura original.
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Award className="mt-0.5 h-5 w-5 shrink-0 text-accent-foreground" />
+                    <Award className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                     <span>
                       <strong>Económico y Eficiente:</strong> Evita costosos
                       repintados.
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Clock className="mt-0.5 h-5 w-5 shrink-0 text-accent-foreground" />
+                    <Clock className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                     <span>
                       <strong>Recuperación Rápida:</strong> Menos tiempo en el
                       taller.
@@ -114,7 +114,7 @@ export default function Home() {
             <Card className="overflow-hidden">
               <CardHeader>
                 <div className="flex items-center gap-4">
-                  <div className="rounded-md bg-primary p-3 text-primary-foreground">
+                  <div className="rounded-md bg-accent p-3 text-accent-foreground">
                     <Sparkles className="h-8 w-8" />
                   </div>
                   <CardTitle className="font-headline text-2xl">
@@ -138,21 +138,21 @@ export default function Home() {
                 </p>
                 <ul className="space-y-2 text-sm text-foreground">
                   <li className="flex items-start gap-2">
-                    <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-accent-foreground" />
+                    <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                     <span>
                       <strong>Restauración del Brillo:</strong> Elimina rayones
                       y desperfectos.
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-accent-foreground" />
+                    <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                     <span>
                       <strong>Protección Adicional:</strong> Previene daños
                       futuros.
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Award className="mt-0.5 h-5 w-5 shrink-0 text-accent-foreground" />
+                    <Award className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                     <span>
                       <strong>Mejora de la Estética:</strong> Transmite cuidado
                       y profesionalismo.
