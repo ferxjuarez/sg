@@ -1,6 +1,6 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react-dom';
 import { getQuote, type QuoteState } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,7 +36,7 @@ function SubmitButton() {
 
 export function QuoteForm() {
   const initialState: QuoteState = { message: '', errors: {} };
-  const [state, dispatch] = useFormState(getQuote, initialState);
+  const [state, dispatch] = useActionState(getQuote, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
