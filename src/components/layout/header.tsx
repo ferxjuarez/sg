@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Menu, Car, LogOut, UserCircle } from 'lucide-react';
+import { Menu, LogOut, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -22,6 +22,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
+import { Logo } from '../icons/logo';
 
 const navLinks = [
   { href: '/', label: 'Inicio' },
@@ -104,9 +105,9 @@ export function Header() {
             className="mr-6 flex items-center space-x-2"
             onClick={() => setMenuOpen(false)}
           >
-            <Car className="h-6 w-6 text-primary" />
+            <Logo className="h-6 w-6 text-primary" />
             <span className="font-headline font-bold sm:inline-block">
-              Machado Automotive
+              S&G
             </span>
           </Link>
         </div>
@@ -178,9 +179,9 @@ export function Header() {
                 className="mr-6 mb-6 flex items-center space-x-2"
                 onClick={() => setMenuOpen(false)}
               >
-                <Car className="h-6 w-6 text-primary" />
+                <Logo className="h-6 w-6 text-primary" />
                 <span className="font-headline font-bold sm:inline-block">
-                  Machado Automotive
+                  S&G
                 </span>
               </Link>
               <div className="flex flex-col space-y-3">

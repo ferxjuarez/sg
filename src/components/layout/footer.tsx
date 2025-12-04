@@ -2,8 +2,9 @@
 'use client';
 
 import Link from 'next/link';
-import { Car, Instagram, Facebook, Twitter } from 'lucide-react';
+import { Instagram, Facebook, Twitter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Logo } from '../icons/logo';
 
 export function Footer() {
   const { toast } = useToast();
@@ -25,9 +26,9 @@ export function Footer() {
       <div className="container mx-auto grid max-w-screen-2xl gap-8 px-4 py-12 sm:grid-cols-2 md:grid-cols-4">
         <div className="flex flex-col gap-4">
           <Link href="/" className="flex items-center space-x-2">
-            <Car className="h-8 w-8 text-primary" />
+            <Logo className="h-8 w-8 text-primary" />
             <span className="font-headline text-xl font-bold">
-              Machado Automotive
+              S&G
             </span>
           </Link>
           <p className="text-muted-foreground">
@@ -86,7 +87,7 @@ export function Footer() {
       <div className="border-t">
         <div className="container mx-auto flex items-center justify-center px-4 py-4 text-sm text-muted-foreground">
           <p>
-            &copy; {new Date().getFullYear()} Machado Automotive Excellence.
+            &copy; {new Date().getFullYear()} S&G.
             Todos los derechos reservados.
           </p>
         </div>

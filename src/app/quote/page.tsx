@@ -1,7 +1,7 @@
 import { QuoteForm } from './quote-form';
 
 export const metadata = {
-  title: 'Cotización | Machado Automotive Excellence',
+  title: 'Cotización | S&G',
   description:
     'Póngase en contacto con nosotros para obtener una cotización para la reparación de su vehículo.',
 };

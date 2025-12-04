@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 
 export const metadata = {
-  title: 'Galería de Trabajos | Machado Automotive Excellence',
+  title: 'Galería de Trabajos | S&G',
   description:
     'Vea ejemplos de nuestro trabajo en reparación de abolladuras y pulido de automóviles.',
 };

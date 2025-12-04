@@ -86,7 +86,7 @@ export default async function Home() {
         />
         <div className="relative z-10 mx-auto max-w-4xl p-4">
           <h1 className="mb-4 font-headline text-4xl font-bold drop-shadow-lg md:text-6xl lg:text-7xl">
-            Machado Automotive Excellence
+            S&G Excelencia Automotriz
           </h1>
           <p className="mx-auto mb-8 max-w-2xl text-lg drop-shadow-md md:text-xl">
             Nos especializamos en la eliminación de abolladuras y el pulido de
@@ -185,7 +185,7 @@ export default async function Home() {
               ¿Por Qué Elegirnos?
             </h2>
             <p className="mb-6 text-muted-foreground">
-              En M A C H A D O, nos comprometemos a ofrecerte un servicio de alta
+              En S&G, nos comprometemos a ofrecerte un servicio de alta
               calidad con resultados excepcionales. Contamos con un equipo de
               profesionales altamente capacitados y utilizamos solo los mejores
               productos y herramientas del mercado. Confía en nosotros para

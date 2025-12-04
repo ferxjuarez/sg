@@ -5,7 +5,7 @@ import { Footer } from '@/components/layout/footer';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'Machado Automotive Excellence',
+  title: 'S&G | Excelencia Automotriz',
   description:
     'Especialistas en la eliminación de abolladuras y pulido de pintura automotriz.',
   keywords: [
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     'pulido de automóviles',
     'taller de chapa y pintura',
     'estética vehicular',
-    'Machado',
+    'S&G',
   ],
 };
 
