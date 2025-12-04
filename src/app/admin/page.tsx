@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, LogOut, ShieldAlert, ImageIcon } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
@@ -29,61 +29,59 @@ export default function AdminPage() {
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const supabase = createClient();
+
+  const fetchInitialData = useCallback(async () => {
+    setLoading(true);
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    setUser(user);
+
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('role, full_name')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || !profileData) {
+      console.error('Error fetching profile:', profileError);
+      setIsAuthorized(false);
+      setLoading(false);
+      return;
+    }
+    setProfile(profileData);
+
+    if (profileData.role === 'admin') {
+      setIsAuthorized(true);
+      const { data: images, error: imagesError } = await supabase
+        .from('gallery_images')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (imagesError) {
+        console.error('Error fetching gallery images:', imagesError);
+      } else if (images) {
+        setGalleryImages(images);
+      }
+    } else {
+      setIsAuthorized(false);
+    }
+
+    setLoading(false);
+  }, [router, supabase]);
 
   useEffect(() => {
-    const fetchInitialData = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        router.push('/login');
-        return;
-      }
-      
-      setUser(user);
-
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('role, full_name')
-        .eq('id', user.id)
-        .single();
-      
-      if (profileError || !profileData) {
-        console.error('Error fetching profile:', profileError);
-        setLoading(false);
-        setIsAuthorized(false);
-        return;
-      }
-
-      setProfile(profileData);
-
-      if (profileData.role === 'admin') {
-        setIsAuthorized(true);
-        const { data: images, error: imagesError } = await supabase
-          .from('gallery_images')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        if (imagesError) {
-          console.error('Error fetching gallery images:', imagesError);
-        } else {
-          setGalleryImages(images);
-        }
-      } else {
-        setIsAuthorized(false);
-      }
-
-      setLoading(false);
-    };
-
     fetchInitialData();
-  }, [router]);
+  }, [fetchInitialData]);
 
   const handleSignOut = async () => {
-    const supabase = createClient();
     await supabase.auth.signOut();
     router.push('/login');
-    router.refresh();
   };
 
   if (loading) {
@@ -146,6 +144,7 @@ export default function AdminPage() {
                       src={image.image_url} 
                       alt={image.description ?? 'Imagen de la galería'} 
                       fill
+                      sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 17vw"
                       className="object-cover"
                     />
                   </div>

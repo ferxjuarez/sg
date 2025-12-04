@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Loader2, Terminal } from 'lucide-react';
 
 export default function LoginPage() {
@@ -25,19 +25,18 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session) {
-        router.push('/admin');
-      } else {
-        setLoading(false);
-      }
-    };
-    checkUser();
+  const checkUser = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      router.push('/admin');
+    } else {
+      setLoading(false);
+    }
   }, [router, supabase]);
+
+  useEffect(() => {
+    checkUser();
+  }, [checkUser]);
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

@@ -33,6 +33,7 @@ export default function Home() {
           fill
           className="object-cover brightness-50"
           priority
+          sizes="100vw"
         />
         <div className="relative z-10 mx-auto max-w-4xl p-4">
           <h1 className="mb-4 font-headline text-4xl font-bold drop-shadow-lg md:text-6xl lg:text-7xl">
@@ -79,6 +80,7 @@ export default function Home() {
                     data-ai-hint={dentRepairImage.imageHint}
                     fill
                     className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 </div>
                 <p className="mb-4 text-muted-foreground">
@@ -130,6 +132,7 @@ export default function Home() {
                     data-ai-hint={polishingImage.imageHint}
                     fill
                     className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 </div>
                 <p className="mb-4 text-muted-foreground">
@@ -175,6 +178,7 @@ export default function Home() {
                 data-ai-hint={technicianImage.imageHint}
                 fill
                 className="object-cover"
+                sizes="(max-width: 768px) 100vw, 40vw"
               />
             </div>
           </div>
