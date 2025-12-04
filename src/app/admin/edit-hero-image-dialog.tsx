@@ -88,14 +88,22 @@ export function EditHeroImageDialog({ onImageChanged, currentImageUrl }: EditHer
 
 
       // 3. Update the URL in the database
-      const { error: updateError } = await supabase
+      const { data: config, error: updateError } = await supabase
         .from('site_config')
         .update({ value: finalUrl })
-        .eq('key', 'hero_image_url');
+        .eq('key', 'hero_image_url')
+        .select()
+        .single();
+        
+      // If there was no row to update, insert it instead.
+      if (!config || updateError) {
+        const { error: insertError } = await supabase
+          .from('site_config')
+          .insert({ key: 'hero_image_url', value: finalUrl });
 
-      if (updateError) {
-        throw updateError;
+        if (insertError) throw insertError;
       }
+
 
       toast({
         title: '¡Éxito!',

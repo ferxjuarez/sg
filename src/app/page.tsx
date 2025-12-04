@@ -64,7 +64,7 @@ export default async function Home() {
     .select('*')
     .order('created_at');
 
-  const { data: heroConfig, error: heroError } = await supabase
+  const { data: heroConfig } = await supabase
       .from('site_config')
       .select('value')
       .eq('key', 'hero_image_url')
