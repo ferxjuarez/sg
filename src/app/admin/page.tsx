@@ -4,12 +4,13 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, LogOut, ShieldAlert, ImageIcon } from 'lucide-react';
+import { Loader2, LogOut, ShieldAlert, ImageIcon, Wrench } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { AddImageDialog } from './add-image-dialog';
+import { AddServiceDialog } from './add-service-dialog';
 
 type Profile = {
   role: string;
@@ -22,15 +23,23 @@ export type GalleryImage = {
   image_url: string;
 };
 
+export type Service = {
+  id: string;
+  title: string;
+  description: string | null;
+  features: string[] | null;
+};
+
 export default function AdminPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
-  const fetchGalleryImages = useCallback(async () => {
+  const fetchContent = useCallback(async () => {
     const supabase = createClient();
     const { data: images, error: imagesError } = await supabase
       .from('gallery_images')
@@ -42,15 +51,24 @@ export default function AdminPage() {
     } else if (images) {
       setGalleryImages(images);
     }
+    
+    const { data: services, error: servicesError } = await supabase
+      .from('services')
+      .select('id, title, description, features')
+      .order('created_at', { ascending: true });
+
+    if (servicesError) {
+        console.error('Error fetching services:', servicesError);
+    } else if (services) {
+        setServices(services);
+    }
   }, []);
 
   useEffect(() => {
-    const supabase = createClient();
-    const fetchInitialData = async () => {
+    const checkUserAndFetchData = async () => {
       setLoading(true);
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
         router.push('/login');
@@ -71,20 +89,19 @@ export default function AdminPage() {
         setProfile(profileData);
         if (profileData.role === 'admin') {
           setIsAuthorized(true);
-          await fetchGalleryImages();
+          await fetchContent();
         } else {
           setIsAuthorized(false);
         }
       }
-
       setLoading(false);
     };
 
-    fetchInitialData();
-  }, [router, fetchGalleryImages]);
+    checkUserAndFetchData();
+  }, [router, fetchContent]);
 
-  const handleImageAdded = () => {
-    fetchGalleryImages();
+  const handleContentAdded = () => {
+    fetchContent();
   };
 
   const handleSignOut = async () => {
@@ -119,7 +136,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="container mx-auto py-16 md:py-24">
+    <div className="container mx-auto space-y-12 py-16 md:py-24">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-headline text-4xl font-bold md:text-5xl">
@@ -135,45 +152,76 @@ export default function AdminPage() {
         </Button>
       </div>
 
-      <div className="mt-12">
-        <Card>
+      <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <ImageIcon className="h-6 w-6" />
+                <Wrench className="h-6 w-6" />
                 <CardTitle className="font-headline text-2xl">
-                  Gestionar Galería
+                  Gestionar Servicios
                 </CardTitle>
               </div>
-              <AddImageDialog onImageAdded={handleImageAdded} />
+              <AddServiceDialog onServiceAdded={handleContentAdded} />
             </div>
           </CardHeader>
           <CardContent>
-            {galleryImages.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
-                {galleryImages.map((image) => (
-                  <div
-                    key={image.id}
-                    className="relative aspect-square overflow-hidden rounded-md border"
-                  >
-                    <Image
-                      src={image.image_url}
-                      alt={image.description ?? 'Imagen de la galería'}
-                      fill
-                      sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 17vw"
-                      className="object-cover"
-                    />
-                  </div>
+            {services.length > 0 ? (
+              <ul className="space-y-4">
+                {services.map((service) => (
+                  <li key={service.id} className="rounded-md border p-4">
+                    <h3 className="font-semibold">{service.title}</h3>
+                    <p className="text-sm text-muted-foreground">{service.description}</p>
+                    <ul className="mt-2 list-inside list-disc text-xs text-muted-foreground">
+                        {service.features?.map((feature, i) => <li key={i} dangerouslySetInnerHTML={{__html: feature}}/>)}
+                    </ul>
+                  </li>
                 ))}
-              </div>
+              </ul>
             ) : (
               <p className="text-center text-muted-foreground">
-                No hay imágenes en la galería. ¡Añade la primera!
+                No hay servicios definidos. ¡Añade el primero!
               </p>
             )}
           </CardContent>
         </Card>
-      </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ImageIcon className="h-6 w-6" />
+              <CardTitle className="font-headline text-2xl">
+                Gestionar Galería
+              </CardTitle>
+            </div>
+            <AddImageDialog onImageAdded={handleContentAdded} />
+          </div>
+        </CardHeader>
+        <CardContent>
+          {galleryImages.length > 0 ? (
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+              {galleryImages.map((image) => (
+                <div
+                  key={image.id}
+                  className="relative aspect-square overflow-hidden rounded-md border"
+                >
+                  <Image
+                    src={image.image_url}
+                    alt={image.description ?? 'Imagen de la galería'}
+                    fill
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 17vw"
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground">
+              No hay imágenes en la galería. ¡Añade la primera!
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

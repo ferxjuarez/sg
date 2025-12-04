@@ -34,6 +34,11 @@ export function AddImageDialog({ onImageAdded }: AddImageDialogProps) {
       setFile(event.target.files[0]);
     }
   };
+  
+  const resetForm = () => {
+      setFile(null);
+      setDescription('');
+  }
 
   const handleSubmit = async () => {
     if (!file) {
@@ -88,9 +93,7 @@ export function AddImageDialog({ onImageAdded }: AddImageDialogProps) {
         description: 'La imagen ha sido añadida a la galería.',
       });
       
-      // Reset form and close dialog
-      setFile(null);
-      setDescription('');
+      resetForm();
       setIsOpen(false);
       onImageAdded();
 
@@ -107,7 +110,12 @@ export function AddImageDialog({ onImageAdded }: AddImageDialogProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+        if (!open) {
+            resetForm();
+        }
+        setIsOpen(open);
+    }}>
       <DialogTrigger asChild>
         <Button>Añadir Nueva Imagen</Button>
       </DialogTrigger>
