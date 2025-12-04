@@ -4,26 +4,59 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, LogOut } from 'lucide-react';
+import { Loader2, LogOut, ShieldAlert } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+type Profile = {
+  role: string;
+  full_name: string;
+};
 
 export default function AdminPage() {
   const router = useRouter();
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
-    const getUser = async () => {
+    const getUserProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
+
       if (!user) {
         router.push('/login');
-      } else {
-        setUser(user);
+        return;
       }
+      
+      setUser(user);
+
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('role, full_name')
+        .eq('id', user.id)
+        .single();
+      
+      if (error || !profileData) {
+        console.error('Error fetching profile:', error);
+        setLoading(false);
+        setIsAuthorized(false);
+        return;
+      }
+
+      setProfile(profileData);
+
+      if (profileData.role === 'admin') {
+        setIsAuthorized(true);
+      } else {
+        setIsAuthorized(false);
+      }
+
       setLoading(false);
     };
-    getUser();
+
+    getUserProfile();
   }, [router, supabase]);
 
   const handleSignOut = async () => {
@@ -32,12 +65,29 @@ export default function AdminPage() {
     router.refresh();
   };
 
-  if (loading || !user) {
+  if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin" />
       </div>
     );
+  }
+
+  if (!isAuthorized) {
+    return (
+      <div className="container mx-auto flex max-w-lg flex-col items-center justify-center py-24">
+        <Alert variant="destructive">
+          <ShieldAlert className="h-4 w-4" />
+          <AlertTitle>Acceso Denegado</AlertTitle>
+          <AlertDescription>
+            No tienes permisos para acceder a esta página.
+          </AlertDescription>
+        </Alert>
+        <Button variant="outline" onClick={() => router.push('/')} className="mt-4">
+          Volver al Inicio
+        </Button>
+      </div>
+    )
   }
 
   return (
@@ -47,7 +97,7 @@ export default function AdminPage() {
           <h1 className="font-headline text-4xl font-bold md:text-5xl">
             Panel de Administración
           </h1>
-          <p className="text-muted-foreground">Bienvenido, {user.user_metadata.full_name || user.email}</p>
+          <p className="text-muted-foreground">Bienvenido, {profile?.full_name || user?.email}</p>
         </div>
         <Button variant="outline" onClick={handleSignOut}>
           <LogOut className="mr-2" />
