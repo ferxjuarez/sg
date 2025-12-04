@@ -31,8 +31,8 @@ export default function AdminPage() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   
   useEffect(() => {
+    const supabase = createClient();
     const fetchInitialData = async () => {
-      const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
