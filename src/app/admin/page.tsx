@@ -4,13 +4,14 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, LogOut, ShieldAlert, ImageIcon, Wrench } from 'lucide-react';
+import { Loader2, LogOut, ShieldAlert, ImageIcon, Wrench, Image as ImageIconLucide } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { AddImageDialog } from './add-image-dialog';
 import { AddServiceDialog } from './add-service-dialog';
+import { EditHeroImageDialog } from './edit-hero-image-dialog';
 
 type Profile = {
   role: string;
@@ -28,7 +29,13 @@ export type Service = {
   title: string;
   description: string | null;
   features: string[] | null;
+  image_url: string;
 };
+
+export type SiteConfig = {
+  key: string;
+  value: string;
+}
 
 export default function AdminPage() {
   const router = useRouter();
@@ -36,32 +43,38 @@ export default function AdminPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   const fetchContent = useCallback(async () => {
     const supabase = createClient();
+    
     const { data: images, error: imagesError } = await supabase
       .from('gallery_images')
       .select('id, description, image_url')
       .order('created_at', { ascending: false });
 
-    if (imagesError) {
-      console.error('Error fetching gallery images:', imagesError);
-    } else if (images) {
-      setGalleryImages(images);
-    }
+    if (imagesError) console.error('Error fetching gallery images:', imagesError);
+    else if (images) setGalleryImages(images);
     
-    const { data: services, error: servicesError } = await supabase
+    const { data: servicesData, error: servicesError } = await supabase
       .from('services')
-      .select('id, title, description, features')
+      .select('id, title, description, features, image_url')
       .order('created_at', { ascending: true });
 
-    if (servicesError) {
-        console.error('Error fetching services:', servicesError);
-    } else if (services) {
-        setServices(services);
-    }
+    if (servicesError) console.error('Error fetching services:', servicesError);
+    else if (servicesData) setServices(servicesData);
+
+    const { data: heroConfig, error: heroError } = await supabase
+      .from('site_config')
+      .select('value')
+      .eq('key', 'hero_image_url')
+      .single();
+    
+    if (heroError) console.error('Error fetching hero image:', heroError);
+    else if (heroConfig) setHeroImageUrl(heroConfig.value);
+
   }, []);
 
   useEffect(() => {
@@ -151,6 +164,31 @@ export default function AdminPage() {
           Cerrar Sesión
         </Button>
       </div>
+        
+      <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ImageIconLucide className="h-6 w-6" />
+                <CardTitle className="font-headline text-2xl">
+                  Imagen Principal
+                </CardTitle>
+              </div>
+              <EditHeroImageDialog onImageChanged={handleContentAdded} currentImageUrl={heroImageUrl} />
+            </div>
+          </CardHeader>
+          <CardContent>
+            {heroImageUrl ? (
+                <div className="relative aspect-video w-full overflow-hidden rounded-md border">
+                    <Image src={heroImageUrl} alt="Imagen principal actual" fill sizes="100vw" className="object-cover" />
+                </div>
+            ) : (
+                <p className="text-center text-muted-foreground">
+                    No se ha configurado una imagen principal.
+                </p>
+            )}
+          </CardContent>
+        </Card>
 
       <Card>
           <CardHeader>
@@ -166,17 +204,32 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent>
             {services.length > 0 ? (
-              <ul className="space-y-4">
+              <div className="grid gap-6 md:grid-cols-2">
                 {services.map((service) => (
-                  <li key={service.id} className="rounded-md border p-4">
-                    <h3 className="font-semibold">{service.title}</h3>
-                    <p className="text-sm text-muted-foreground">{service.description}</p>
-                    <ul className="mt-2 list-inside list-disc text-xs text-muted-foreground">
-                        {service.features?.map((feature, i) => <li key={i} dangerouslySetInnerHTML={{__html: feature}}/>)}
-                    </ul>
-                  </li>
+                  <Card key={service.id}>
+                      <CardContent className="p-0">
+                         {service.image_url && (
+                             <div className="relative aspect-video overflow-hidden">
+                                <Image
+                                    src={service.image_url}
+                                    alt={service.title}
+                                    fill
+                                    className="object-cover"
+                                    sizes="(max-width: 768px) 100vw, 50vw"
+                                />
+                             </div>
+                         )}
+                         <div className="p-4">
+                            <h3 className="font-semibold">{service.title}</h3>
+                            <p className="text-sm text-muted-foreground">{service.description}</p>
+                            <ul className="mt-2 list-inside list-disc text-xs text-muted-foreground">
+                                {service.features?.map((feature, i) => <li key={i} dangerouslySetInnerHTML={{__html: feature}}/>)}
+                            </ul>
+                         </div>
+                      </CardContent>
+                  </Card>
                 ))}
-              </ul>
+              </div>
             ) : (
               <p className="text-center text-muted-foreground">
                 No hay servicios definidos. ¡Añade el primero!

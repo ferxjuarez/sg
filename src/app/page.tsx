@@ -21,7 +21,7 @@ import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { ComponentType } from 'react';
 
-const heroImage = PlaceHolderImages.find((p) => p.id === 'hero-background')!;
+
 const technicianImage = PlaceHolderImages.find(
   (p) => p.id === 'technician-bio'
 )!;
@@ -37,7 +37,7 @@ const iconMap: { [key: string]: ComponentType<LucideProps> } = {
 
 const DynamicIcon = ({ name }: { name: string | null }) => {
   if (!name || !iconMap[name]) {
-    return null;
+    return <Award className="h-8 w-8" />; // Fallback icon
   }
   const IconComponent = iconMap[name];
   return <IconComponent className="h-8 w-8" />;
@@ -64,13 +64,21 @@ export default async function Home() {
     .select('*')
     .order('created_at');
 
+  const { data: heroConfig, error: heroError } = await supabase
+      .from('site_config')
+      .select('value')
+      .eq('key', 'hero_image_url')
+      .single();
+
+  const heroImageUrl = heroConfig?.value ?? PlaceHolderImages.find((p) => p.id === 'hero-background')!.imageUrl;
+
+
   return (
     <div className="flex flex-col">
       <section className="relative flex h-[60vh] w-full items-center justify-center text-center text-white md:h-[80vh]">
         <Image
-          src={heroImage.imageUrl}
-          alt={heroImage.description}
-          data-ai-hint={heroImage.imageHint}
+          src={heroImageUrl}
+          alt="Taller de reparación de automóviles"
           fill
           className="object-cover brightness-50"
           priority
