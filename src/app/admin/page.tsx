@@ -24,7 +24,6 @@ type GalleryImage = {
 
 export default function AdminPage() {
   const router = useRouter();
-  const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
@@ -33,6 +32,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     const fetchInitialData = async () => {
+      const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
@@ -77,9 +77,10 @@ export default function AdminPage() {
     };
 
     fetchInitialData();
-  }, [router, supabase]);
+  }, [router]);
 
   const handleSignOut = async () => {
+    const supabase = createClient();
     await supabase.auth.signOut();
     router.push('/login');
     router.refresh();
