@@ -8,21 +8,62 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Hammer, Sparkles, Award, ShieldCheck, Clock } from 'lucide-react';
+import {
+  Hammer,
+  Sparkles,
+  Award,
+  ShieldCheck,
+  Clock,
+  LucideProps,
+} from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
+import { ComponentType } from 'react';
 
 const heroImage = PlaceHolderImages.find((p) => p.id === 'hero-background')!;
-const dentRepairImage = PlaceHolderImages.find(
-  (p) => p.id === 'service-dent-repair'
-)!;
-const polishingImage = PlaceHolderImages.find(
-  (p) => p.id === 'service-polishing'
-)!;
 const technicianImage = PlaceHolderImages.find(
   (p) => p.id === 'technician-bio'
 )!;
 
-export default function Home() {
+// Helper to get Lucide icons dynamically
+const iconMap: { [key: string]: ComponentType<LucideProps> } = {
+  Hammer,
+  Sparkles,
+  Award,
+  ShieldCheck,
+  Clock,
+};
+
+const DynamicIcon = ({ name }: { name: string | null }) => {
+  if (!name || !iconMap[name]) {
+    return null;
+  }
+  const IconComponent = iconMap[name];
+  return <IconComponent className="h-8 w-8" />;
+};
+
+const FeatureIcon = ({ name }: { name: string }) => {
+  const iconKey = name.split(' ')[0].replace('<strong>', '');
+  const IconComponent =
+    iconMap[iconKey] ||
+    iconMap[
+      Object.keys(iconMap).find((k) =>
+        k.toLowerCase().includes(iconKey.toLowerCase())
+      ) ?? 'ShieldCheck'
+    ];
+  return <IconComponent className="mt-0.5 h-5 w-5 shrink-0 text-primary" />;
+};
+
+export default async function Home() {
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+
+  const { data: services } = await supabase
+    .from('services')
+    .select('*')
+    .order('created_at');
+
   return (
     <div className="flex flex-col">
       <section className="relative flex h-[60vh] w-full items-center justify-center text-center text-white md:h-[80vh]">
@@ -61,109 +102,45 @@ export default function Home() {
             </p>
           </div>
           <div className="grid gap-8 md:grid-cols-2">
-            <Card className="overflow-hidden">
-              <CardHeader>
-                <div className="flex items-center gap-4">
-                  <div className="rounded-md bg-accent p-3 text-accent-foreground">
-                    <Hammer className="h-8 w-8" />
+            {services?.map((service) => (
+              <Card key={service.id} className="overflow-hidden">
+                <CardHeader>
+                  <div className="flex items-center gap-4">
+                    <div className="rounded-md bg-accent p-3 text-accent-foreground">
+                      <DynamicIcon name={service.icon_name} />
+                    </div>
+                    <CardTitle className="font-headline text-2xl">
+                      {service.title}
+                    </CardTitle>
                   </div>
-                  <CardTitle className="font-headline text-2xl">
-                    Reparación de Abolladuras
-                  </CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="relative mb-4 aspect-video overflow-hidden rounded-md">
-                  <Image
-                    src={dentRepairImage.imageUrl}
-                    alt={dentRepairImage.description}
-                    data-ai-hint={dentRepairImage.imageHint}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                </div>
-                <p className="mb-4 text-muted-foreground">
-                  Utilizamos herramientas avanzadas y técnicas especializadas
-                  para restaurar la carrocería de tu vehículo sin necesidad de
-                  repintar.
-                </p>
-                <ul className="space-y-2 text-sm text-foreground">
-                  <li className="flex items-start gap-2">
-                    <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                    <span>
-                      <strong>Método No Invasivo:</strong> Preservamos la
-                      pintura original.
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Award className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                    <span>
-                      <strong>Económico y Eficiente:</strong> Evita costosos
-                      repintados.
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Clock className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                    <span>
-                      <strong>Recuperación Rápida:</strong> Menos tiempo en el
-                      taller.
-                    </span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-            <Card className="overflow-hidden">
-              <CardHeader>
-                <div className="flex items-center gap-4">
-                  <div className="rounded-md bg-accent p-3 text-accent-foreground">
-                    <Sparkles className="h-8 w-8" />
-                  </div>
-                  <CardTitle className="font-headline text-2xl">
-                    Pulido de Automóviles
-                  </CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="relative mb-4 aspect-video overflow-hidden rounded-md">
-                  <Image
-                    src={polishingImage.imageUrl}
-                    alt={polishingImage.description}
-                    data-ai-hint={polishingImage.imageHint}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                </div>
-                <p className="mb-4 text-muted-foreground">
-                  Diseñado para eliminar rayones menores y devolverle el brillo
-                  a la pintura de tu coche.
-                </p>
-                <ul className="space-y-2 text-sm text-foreground">
-                  <li className="flex items-start gap-2">
-                    <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                    <span>
-                      <strong>Restauración del Brillo:</strong> Elimina rayones
-                      y desperfectos.
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                    <span>
-                      <strong>Protección Adicional:</strong> Previene daños
-                      futuros.
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Award className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                    <span>
-                      <strong>Mejora de la Estética:</strong> Transmite cuidado
-                      y profesionalismo.
-                    </span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent>
+                  {service.image_url && (
+                    <div className="relative mb-4 aspect-video overflow-hidden rounded-md">
+                      <Image
+                        src={service.image_url}
+                        alt={service.description ?? service.title}
+                        data-ai-hint={service.image_hint ?? 'car service'}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                      />
+                    </div>
+                  )}
+                  <p className="mb-4 text-muted-foreground">
+                    {service.description}
+                  </p>
+                  <ul className="space-y-2 text-sm text-foreground">
+                    {service.features?.map((feature, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <FeatureIcon name={feature} />
+                        <span dangerouslySetInnerHTML={{ __html: feature }} />
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>

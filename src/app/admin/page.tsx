@@ -2,20 +2,21 @@
 
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, LogOut, ShieldAlert, ImageIcon } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
+import { AddImageDialog } from './add-image-dialog';
 
 type Profile = {
   role: string;
   full_name: string;
 };
 
-type GalleryImage = {
+export type GalleryImage = {
   id: string;
   description: string | null;
   image_url: string;
@@ -29,11 +30,29 @@ export default function AdminPage() {
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
-  
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const fetchGalleryImages = useCallback(async () => {
+    const supabase = createClient();
+    const { data: images, error: imagesError } = await supabase
+      .from('gallery_images')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (imagesError) {
+      console.error('Error fetching gallery images:', imagesError);
+    } else if (images) {
+      setGalleryImages(images);
+    }
+  }, []);
+
   useEffect(() => {
     const supabase = createClient();
     const fetchInitialData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      setLoading(true);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (!user) {
         router.push('/login');
@@ -53,31 +72,26 @@ export default function AdminPage() {
         setLoading(false);
         return;
       }
-      
+
       setProfile(profileData);
 
       if (profileData.role === 'admin') {
         setIsAuthorized(true);
-        const { data: images, error: imagesError } = await supabase
-          .from('gallery_images')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        if (imagesError) {
-          console.error('Error fetching gallery images:', imagesError);
-        } else if (images) {
-          setGalleryImages(images);
-        }
+        await fetchGalleryImages();
       } else {
         setIsAuthorized(false);
       }
 
       setLoading(false);
     };
-    
-    fetchInitialData();
-  }, [router]);
 
+    fetchInitialData();
+  }, [router, fetchGalleryImages]);
+
+  const handleImageAdded = () => {
+    fetchGalleryImages();
+  };
+  
   const handleSignOut = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
@@ -106,7 +120,7 @@ export default function AdminPage() {
           Volver al Inicio
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -116,7 +130,9 @@ export default function AdminPage() {
           <h1 className="font-headline text-4xl font-bold md:text-5xl">
             Panel de Administración
           </h1>
-          <p className="text-muted-foreground">Bienvenido, {profile?.full_name || user?.email}</p>
+          <p className="text-muted-foreground">
+            Bienvenido, {profile?.full_name || user?.email}
+          </p>
         </div>
         <Button variant="outline" onClick={handleSignOut}>
           <LogOut className="mr-2" />
@@ -128,21 +144,26 @@ export default function AdminPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <div className='flex items-center gap-2'>
+              <div className="flex items-center gap-2">
                 <ImageIcon className="h-6 w-6" />
-                <CardTitle className='font-headline text-2xl'>Gestionar Galería</CardTitle>
+                <CardTitle className="font-headline text-2xl">
+                  Gestionar Galería
+                </CardTitle>
               </div>
-              <Button disabled>Añadir Nueva Imagen</Button>
+              <AddImageDialog onImageAdded={handleImageAdded} />
             </div>
           </CardHeader>
           <CardContent>
             {galleryImages.length > 0 ? (
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
                 {galleryImages.map((image) => (
-                  <div key={image.id} className="relative aspect-square overflow-hidden rounded-md border">
-                    <Image 
-                      src={image.image_url} 
-                      alt={image.description ?? 'Imagen de la galería'} 
+                  <div
+                    key={image.id}
+                    className="relative aspect-square overflow-hidden rounded-md border"
+                  >
+                    <Image
+                      src={image.image_url}
+                      alt={image.description ?? 'Imagen de la galería'}
                       fill
                       sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 17vw"
                       className="object-cover"
@@ -151,7 +172,9 @@ export default function AdminPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-center text-muted-foreground">No hay imágenes en la galería.</p>
+              <p className="text-center text-muted-foreground">
+                No hay imágenes en la galería. ¡Añade la primera!
+              </p>
             )}
           </CardContent>
         </Card>
