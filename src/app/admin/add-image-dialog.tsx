@@ -26,7 +26,6 @@ export function AddImageDialog({ onImageAdded }: AddImageDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [description, setDescription] = useState('');
-  const [imageHint, setImageHint] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const { toast } = useToast();
 
@@ -77,7 +76,6 @@ export function AddImageDialog({ onImageAdded }: AddImageDialogProps) {
         .from('gallery_images')
         .insert({
           description,
-          image_hint: imageHint,
           image_url: publicUrl,
         });
 
@@ -93,7 +91,6 @@ export function AddImageDialog({ onImageAdded }: AddImageDialogProps) {
       // Reset form and close dialog
       setFile(null);
       setDescription('');
-      setImageHint('');
       setIsOpen(false);
       onImageAdded();
 
@@ -139,15 +136,6 @@ export function AddImageDialog({ onImageAdded }: AddImageDialogProps) {
               placeholder="Ej: Reparación de golpe en puerta de Toyota..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-            />
-          </div>
-           <div className="space-y-2">
-            <Label htmlFor="image-hint">Palabras Clave (para IA)</Label>
-            <Input
-              id="image-hint"
-              placeholder="Ej: car repair"
-              value={imageHint}
-              onChange={(e) => setImageHint(e.target.value)}
             />
           </div>
         </div>

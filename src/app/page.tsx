@@ -120,7 +120,6 @@ export default async function Home() {
                       <Image
                         src={service.image_url}
                         alt={service.description ?? service.title}
-                        data-ai-hint={service.image_hint ?? 'car service'}
                         fill
                         className="object-cover"
                         sizes="(max-width: 768px) 100vw, 50vw"

@@ -20,7 +20,6 @@ export type GalleryImage = {
   id: string;
   description: string | null;
   image_url: string;
-  image_hint: string | null;
 };
 
 export default function AdminPage() {
@@ -30,13 +29,12 @@ export default function AdminPage() {
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const fetchGalleryImages = useCallback(async () => {
     const supabase = createClient();
     const { data: images, error: imagesError } = await supabase
       .from('gallery_images')
-      .select('*')
+      .select('id, description, image_url')
       .order('created_at', { ascending: false });
 
     if (imagesError) {
@@ -69,17 +67,14 @@ export default function AdminPage() {
       if (profileError || !profileData) {
         console.error('Error fetching profile:', profileError);
         setIsAuthorized(false);
-        setLoading(false);
-        return;
-      }
-
-      setProfile(profileData);
-
-      if (profileData.role === 'admin') {
-        setIsAuthorized(true);
-        await fetchGalleryImages();
       } else {
-        setIsAuthorized(false);
+        setProfile(profileData);
+        if (profileData.role === 'admin') {
+          setIsAuthorized(true);
+          await fetchGalleryImages();
+        } else {
+          setIsAuthorized(false);
+        }
       }
 
       setLoading(false);
@@ -91,7 +86,7 @@ export default function AdminPage() {
   const handleImageAdded = () => {
     fetchGalleryImages();
   };
-  
+
   const handleSignOut = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();

@@ -15,7 +15,7 @@ export default async function GalleryPage() {
 
   const { data: galleryImages, error } = await supabase
     .from('gallery_images')
-    .select('*')
+    .select('id, description, image_url')
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -52,7 +52,6 @@ export default async function GalleryPage() {
                   <Image
                     src={image.image_url}
                     alt={image.description ?? 'Trabajo realizado'}
-                    data-ai-hint={image.image_hint ?? 'car service'}
                     width={600}
                     height={400}
                     className="h-full w-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
