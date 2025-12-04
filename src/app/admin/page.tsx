@@ -4,13 +4,22 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, LogOut, ShieldAlert } from 'lucide-react';
+import { Loader2, LogOut, ShieldAlert, ImageIcon } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Image from 'next/image';
 
 type Profile = {
   role: string;
   full_name: string;
+};
+
+type GalleryImage = {
+  id: string;
+  description: string | null;
+  image_url: string;
+  image_hint: string | null;
 };
 
 export default function AdminPage() {
@@ -18,11 +27,12 @@ export default function AdminPage() {
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
-    const getUserProfile = async () => {
+    const fetchInitialData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
@@ -32,14 +42,14 @@ export default function AdminPage() {
       
       setUser(user);
 
-      const { data: profileData, error } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('role, full_name')
         .eq('id', user.id)
         .single();
       
-      if (error || !profileData) {
-        console.error('Error fetching profile:', error);
+      if (profileError || !profileData) {
+        console.error('Error fetching profile:', profileError);
         setLoading(false);
         setIsAuthorized(false);
         return;
@@ -49,6 +59,16 @@ export default function AdminPage() {
 
       if (profileData.role === 'admin') {
         setIsAuthorized(true);
+        const { data: images, error: imagesError } = await supabase
+          .from('gallery_images')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (imagesError) {
+          console.error('Error fetching gallery images:', imagesError);
+        } else {
+          setGalleryImages(images);
+        }
       } else {
         setIsAuthorized(false);
       }
@@ -56,7 +76,7 @@ export default function AdminPage() {
       setLoading(false);
     };
 
-    getUserProfile();
+    fetchInitialData();
   }, [router, supabase]);
 
   const handleSignOut = async () => {
@@ -92,7 +112,7 @@ export default function AdminPage() {
 
   return (
     <div className="container mx-auto py-16 md:py-24">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-headline text-4xl font-bold md:text-5xl">
             Panel de Administración
@@ -105,12 +125,36 @@ export default function AdminPage() {
         </Button>
       </div>
 
-      <div className="mt-8">
-        <p>
-          Aquí podrás gestionar el contenido de la web. Próximamente
-          agregaremos las herramientas para subir y editar las imágenes de la
-          galería y administrar los servicios.
-        </p>
+      <div className="mt-12">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className='flex items-center gap-2'>
+                <ImageIcon className="h-6 w-6" />
+                <CardTitle className='font-headline text-2xl'>Gestionar Galería</CardTitle>
+              </div>
+              <Button disabled>Añadir Nueva Imagen</Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {galleryImages.length > 0 ? (
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+                {galleryImages.map((image) => (
+                  <div key={image.id} className="relative aspect-square overflow-hidden rounded-md border">
+                    <Image 
+                      src={image.image_url} 
+                      alt={image.description ?? 'Imagen de la galería'} 
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-muted-foreground">No hay imágenes en la galería.</p>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

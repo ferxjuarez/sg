@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
 
 export const metadata = {
   title: 'Galería de Trabajos | Machado Automotive Excellence',
@@ -8,10 +9,26 @@ export const metadata = {
     'Vea ejemplos de nuestro trabajo en reparación de abolladuras y pulido de automóviles.',
 };
 
-export default function GalleryPage() {
-  const galleryImages = PlaceHolderImages.filter((p) =>
-    p.id.startsWith('gallery-')
-  );
+export default async function GalleryPage() {
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+
+  const { data: galleryImages, error } = await supabase
+    .from('gallery_images')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching gallery images:', error);
+    return (
+      <div className="container mx-auto py-24 text-center">
+        <p className="text-destructive">
+          No se pudieron cargar las imágenes de la galería. Por favor,
+          inténtelo de nuevo más tarde.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-background">
@@ -33,19 +50,21 @@ export default function GalleryPage() {
               <CardContent className="p-0">
                 <div className="relative aspect-video overflow-hidden">
                   <Image
-                    src={image.imageUrl}
-                    alt={image.description}
-                    data-ai-hint={image.imageHint}
+                    src={image.image_url}
+                    alt={image.description ?? 'Trabajo realizado'}
+                    data-ai-hint={image.image_hint ?? 'car service'}
                     width={600}
                     height={400}
                     className="h-full w-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
                   />
                 </div>
-                <div className="p-4">
-                  <p className="text-sm text-muted-foreground">
-                    {image.description}
-                  </p>
-                </div>
+                {image.description && (
+                  <div className="p-4">
+                    <p className="text-sm text-muted-foreground">
+                      {image.description}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
