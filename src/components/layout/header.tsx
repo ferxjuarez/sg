@@ -30,25 +30,48 @@ const navLinks = [
   { href: '/quote', label: 'Cotización' },
 ];
 
+type Profile = {
+  full_name: string;
+  avatar_url: string;
+}
+
 export function Header() {
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const supabase = createClient();
 
   useEffect(() => {
+    const fetchUserProfile = async (user: User) => {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('full_name, avatar_url')
+        .eq('id', user.id)
+        .single();
+      setProfile(profileData);
+    };
+
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        setUser(session?.user ?? null);
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        if (currentUser) {
+          fetchUserProfile(currentUser);
+        } else {
+          setProfile(null);
+        }
         setLoading(false);
       }
     );
     
-    // Initial check
     const getUser = async () => {
         const { data: { user } } = await supabase.auth.getUser();
         setUser(user);
+        if (user) {
+          await fetchUserProfile(user);
+        }
         setLoading(false);
     }
     getUser();
@@ -57,13 +80,20 @@ export function Header() {
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [supabase.auth, router]);
+  }, [supabase, router]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     router.push('/');
     router.refresh();
   };
+
+  const getInitials = (name: string | undefined | null, fallback: string | undefined | null) => {
+    if (name) {
+      return name.split(' ').map(n => n[0]).join('').substring(0, 2);
+    }
+    return fallback?.charAt(0).toUpperCase() ?? '';
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -98,9 +128,9 @@ export function Header() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.user_metadata.avatar_url ?? ''} alt={user.user_metadata.full_name ?? 'Usuario'} />
+                      <AvatarImage src={profile?.avatar_url ?? ''} alt={profile?.full_name ?? 'Usuario'} />
                       <AvatarFallback>
-                        {user.user_metadata.full_name?.charAt(0) ?? user.email?.charAt(0)}
+                        {getInitials(profile?.full_name, user.email)}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -108,7 +138,7 @@ export function Header() {
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user.user_metadata.full_name}</p>
+                      <p className="text-sm font-medium leading-none">{profile?.full_name ?? 'Usuario'}</p>
                       <p className="text-xs leading-none text-muted-foreground">
                         {user.email}
                       </p>
