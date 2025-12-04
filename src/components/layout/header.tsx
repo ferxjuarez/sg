@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Menu, LogOut, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,7 +23,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
-import { Logo } from '../icons/logo';
 
 const navLinks = [
   { href: '/', label: 'Inicio' },
@@ -105,10 +105,7 @@ export function Header() {
             className="mr-6 flex items-center space-x-2"
             onClick={() => setMenuOpen(false)}
           >
-            <Logo className="h-6 w-6 text-primary" />
-            <span className="font-headline font-bold sm:inline-block">
-              S&G
-            </span>
+            <Image src="/images/logo.png" alt="S&G Logo" width={90} height={32} />
           </Link>
         </div>
         <nav className="hidden items-center space-x-6 text-sm font-medium md:flex">
@@ -179,10 +176,7 @@ export function Header() {
                 className="mr-6 mb-6 flex items-center space-x-2"
                 onClick={() => setMenuOpen(false)}
               >
-                <Logo className="h-6 w-6 text-primary" />
-                <span className="font-headline font-bold sm:inline-block">
-                  S&G
-                </span>
+                 <Image src="/images/logo.png" alt="S&G Logo" width={90} height={32} />
               </Link>
               <div className="flex flex-col space-y-3">
                 {navLinks.map((link) => (
