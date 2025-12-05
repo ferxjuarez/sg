@@ -1,6 +1,7 @@
 'use server';
 
 import { z } from 'zod';
+import { Resend } from 'resend';
 
 const FormSchema = z.object({
   name: z.string().min(2, { message: 'El nombre es requerido.' }),
@@ -38,22 +39,41 @@ export async function getQuote(
   }
 
   const { name, email, description } = validatedFields.data;
-
-  // En una aplicación real, aquí enviarías un correo electrónico.
-  // Por ahora, solo simularemos el éxito.
-  console.log('Nueva solicitud de cotización:');
-  console.log('Nombre:', name);
-  console.log('Email:', email);
-  console.log('Descripción:', description);
+  const resend = new Resend(process.env.RESEND_API_KEY);
 
   try {
-    // Aquí iría la lógica para enviar el email.
-    // Por ejemplo, usando Nodemailer, Resend, etc.
+    const { data, error } = await resend.emails.send({
+      // IMPORTANTE: Cambia 'onboarding@resend.dev' por tu email verificado en Resend
+      // por ejemplo: 'notificaciones@tu-dominio.com'
+      from: 'S&G Cotizaciones <onboarding@resend.dev>',
+      // IMPORTANTE: Cambia esto por el email donde quieres recibir las notificaciones
+      to: ['tu-email@example.com'],
+      subject: `Nueva solicitud de cotización de ${name}`,
+      html: `
+        <h1>Nueva Solicitud de Cotización</h1>
+        <p>Has recibido una nueva solicitud a través del formulario de tu página web.</p>
+        <h2>Detalles:</h2>
+        <ul>
+          <li><strong>Nombre:</strong> ${name}</li>
+          <li><strong>Email de contacto:</strong> ${email}</li>
+        </ul>
+        <h3>Descripción del servicio solicitado:</h3>
+        <p>${description}</p>
+      `,
+    });
+
+    if (error) {
+      console.error('Resend Error:', error);
+      throw new Error('Error al enviar el email de notificación.');
+    }
+
+    console.log('Notificación por email enviada:', data);
+
     return {
       message: 'Solicitud recibida exitosamente.',
     };
   } catch (error) {
-    console.error('Quote Error:', error);
+    console.error('Quote/Email Error:', error);
     return {
       message:
         'No se pudo enviar la solicitud. Por favor, inténtelo de nuevo más tarde.',
