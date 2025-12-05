@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, LogOut, ShieldAlert, ImageIcon, Wrench, Image as ImageIconLucide, Text } from 'lucide-react';
+import { Loader2, LogOut, ShieldAlert, ImageIcon, Wrench, Image as ImageIconLucide, Text, Trash2 } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -15,6 +15,19 @@ import { EditHeroImageDialog } from './edit-hero-image-dialog';
 import { EditContentDialog } from './edit-content-dialog';
 import { EditWhyUsImageDialog } from './edit-why-us-image-dialog';
 import { Label } from '@/components/ui/label';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { useToast } from '@/hooks/use-toast';
+
 
 type Profile = {
   role: string;
@@ -41,6 +54,7 @@ export type SiteConfig = {
 
 export default function AdminPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
@@ -129,6 +143,62 @@ export default function AdminPage() {
     await supabase.auth.signOut();
     router.push('/login');
   };
+
+  const getStoragePathFromUrl = (url: string) => {
+      const urlObject = new URL(url);
+      const pathSegments = urlObject.pathname.split('/');
+      // The path in storage is after the 'public/' part
+      const bucketNameIndex = pathSegments.findIndex(segment => segment === 'public');
+      if (bucketNameIndex !== -1) {
+          return pathSegments.slice(bucketNameIndex).join('/');
+      }
+      return '';
+  }
+  
+  const handleDeleteService = async (service: Service) => {
+    const supabase = createClient();
+    const imagePath = getStoragePathFromUrl(service.image_url);
+    
+    try {
+        // 1. Delete DB record
+        const { error: dbError } = await supabase.from('services').delete().eq('id', service.id);
+        if (dbError) throw dbError;
+
+        // 2. Delete storage object
+        if (imagePath) {
+            const { error: storageError } = await supabase.storage.from('services').remove([imagePath]);
+            if (storageError) console.warn('Could not delete storage object, but DB record was deleted.', storageError);
+        }
+
+        toast({ title: "¡Éxito!", description: "El servicio ha sido eliminado." });
+        handleContentChanged();
+    } catch (error: any) {
+        toast({ variant: 'destructive', title: "Error", description: error.message || "No se pudo eliminar el servicio." });
+    }
+  }
+
+  const handleDeleteImage = async (image: GalleryImage) => {
+    const supabase = createClient();
+    const imagePath = getStoragePathFromUrl(image.image_url);
+    
+    try {
+        // 1. Delete DB record
+        const { error: dbError } = await supabase.from('gallery_images').delete().eq('id', image.id);
+        if (dbError) throw dbError;
+
+        // 2. Delete storage object
+        if (imagePath) {
+            const { error: storageError } = await supabase.storage.from('gallery').remove([imagePath]);
+            if (storageError) console.warn('Could not delete storage object, but DB record was deleted.', storageError);
+        }
+
+        toast({ title: "¡Éxito!", description: "La imagen ha sido eliminada." });
+        handleContentChanged();
+    } catch (error: any) {
+        toast({ variant: 'destructive', title: "Error", description: error.message || "No se pudo eliminar la imagen." });
+    }
+  }
+
 
   if (loading) {
     return (
@@ -261,7 +331,7 @@ export default function AdminPage() {
             {services.length > 0 ? (
               <div className="grid gap-6 md:grid-cols-2">
                 {services.map((service) => (
-                  <Card key={service.id}>
+                  <Card key={service.id} className="group relative">
                       <CardContent className="p-0">
                          {service.image_url && (
                              <div className="relative aspect-video overflow-hidden">
@@ -282,6 +352,28 @@ export default function AdminPage() {
                             </ul>
                          </div>
                       </CardContent>
+                       <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="icon" className="absolute right-2 top-2 h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Esta acción no se puede deshacer. Esto eliminará permanentemente el servicio
+                                y borrará su imagen del almacenamiento.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteService(service)}>
+                                Sí, eliminar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                   </Card>
                 ))}
               </div>
@@ -311,7 +403,7 @@ export default function AdminPage() {
               {galleryImages.map((image) => (
                 <div
                   key={image.id}
-                  className="relative aspect-square overflow-hidden rounded-md border"
+                  className="group relative aspect-square overflow-hidden rounded-md border"
                 >
                   <Image
                     src={image.image_url}
@@ -320,6 +412,30 @@ export default function AdminPage() {
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 17vw"
                     className="object-cover"
                   />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 transition-opacity group-hover:opacity-100 flex items-center justify-center">
+                     <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                         <Button variant="destructive" size="icon" className="h-9 w-9">
+                            <Trash2 className="h-5 w-5" />
+                          </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta acción no se puede deshacer. Esto eliminará permanentemente la imagen
+                            de la galería y de los servidores.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteImage(image)}>
+                            Sí, eliminar
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
               ))}
             </div>
