@@ -14,6 +14,7 @@ import { AddServiceDialog } from './add-service-dialog';
 import { EditHeroImageDialog } from './edit-hero-image-dialog';
 import { EditContentDialog } from './edit-content-dialog';
 import { EditWhyUsImageDialog } from './edit-why-us-image-dialog';
+import { Label } from '@/components/ui/label';
 
 type Profile = {
   role: string;
