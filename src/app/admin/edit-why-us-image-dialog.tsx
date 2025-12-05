@@ -17,11 +17,11 @@ import { Loader2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface EditHeroImageDialogProps {
+interface EditWhyUsImageDialogProps {
   onImageChanged: () => void;
 }
 
-export function EditHeroImageDialog({ onImageChanged }: EditHeroImageDialogProps) {
+export function EditWhyUsImageDialog({ onImageChanged }: EditWhyUsImageDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -51,51 +51,34 @@ export function EditHeroImageDialog({ onImageChanged }: EditHeroImageDialogProps
     const supabase = createClient();
     
     try {
-      // 1. Upload new image to Supabase Storage in a specific 'config' bucket
       const fileExt = file.name.split('.').pop();
-      const fileName = `hero-image.${fileExt}`; // Overwrite the old hero image
+      const fileName = `why-us-image.${fileExt}`;
       const filePath = `public/${fileName}`;
 
-      let storage = supabase.storage.from('site_config');
+      const storage = supabase.storage.from('site_config');
 
       const { error: uploadError } = await storage.upload(filePath, file, { upsert: true });
 
-      if (uploadError) {
-         // If bucket doesn't exist, create it. This is a fallback.
-        if (uploadError.message.includes('Bucket not found')) {
-            const { error: createBucketError } = await supabase.storage.createBucket('site_config', { public: true });
-            if (createBucketError) throw createBucketError;
-            // Retry upload
-            const { error: retryUploadError } = await storage.upload(filePath, file, { upsert: true });
-            if (retryUploadError) throw retryUploadError;
-        } else {
-            throw uploadError;
-        }
-      }
+      if (uploadError) throw uploadError;
       
-      // 2. Get public URL of the uploaded image
       const { data: { publicUrl } } = storage.getPublicUrl(filePath);
         
       if (!publicUrl) {
           throw new Error('Could not get public URL for the uploaded image.');
       }
       
-      // We need to add a timestamp to bust the cache
       const finalUrl = `${publicUrl}?t=${new Date().getTime()}`;
 
-
-      // 3. Update the URL in the database
       const { error: updateError } = await supabase
         .from('site_config')
         .update({ value: finalUrl })
-        .eq('key', 'hero_image_url');
+        .eq('key', 'why_choose_us_image_url');
         
       if (updateError) throw updateError;
 
-
       toast({
         title: '¡Éxito!',
-        description: 'La imagen principal ha sido actualizada.',
+        description: 'La imagen ha sido actualizada.',
       });
       
       resetForm();
@@ -103,7 +86,7 @@ export function EditHeroImageDialog({ onImageChanged }: EditHeroImageDialogProps
       onImageChanged();
 
     } catch (error: any) {
-      console.error('Error updating hero image:', error);
+      console.error('Error updating image:', error);
       toast({
         variant: 'destructive',
         title: 'Error al actualizar la imagen',
@@ -124,9 +107,9 @@ export function EditHeroImageDialog({ onImageChanged }: EditHeroImageDialogProps
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Cambiar Imagen de Portada</DialogTitle>
+          <DialogTitle>Cambiar Imagen de la Sección</DialogTitle>
           <DialogDescription>
-            Sube una nueva imagen para la sección principal de la página de inicio.
+            Sube una nueva imagen para la sección "Por qué elegirnos".
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">

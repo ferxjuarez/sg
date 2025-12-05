@@ -4,14 +4,16 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, LogOut, ShieldAlert, ImageIcon, Wrench, Image as ImageIconLucide } from 'lucide-react';
+import { Loader2, LogOut, ShieldAlert, ImageIcon, Wrench, Image as ImageIconLucide, Text } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Image from 'next/image';
 import { AddImageDialog } from './add-image-dialog';
 import { AddServiceDialog } from './add-service-dialog';
 import { EditHeroImageDialog } from './edit-hero-image-dialog';
+import { EditContentDialog } from './edit-content-dialog';
+import { EditWhyUsImageDialog } from './edit-why-us-image-dialog';
 
 type Profile = {
   role: string;
@@ -33,8 +35,7 @@ export type Service = {
 };
 
 export type SiteConfig = {
-  key: string;
-  value: string;
+  [key: string]: string;
 }
 
 export default function AdminPage() {
@@ -43,38 +44,43 @@ export default function AdminPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [services, setServices] = useState<Service[]>([]);
-  const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
+  const [siteConfig, setSiteConfig] = useState<SiteConfig>({});
   const [loading, setLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   const fetchContent = useCallback(async () => {
     const supabase = createClient();
     
+    // Fetch Gallery Images
     const { data: images, error: imagesError } = await supabase
       .from('gallery_images')
       .select('id, description, image_url')
       .order('created_at', { ascending: false });
-
     if (imagesError) console.error('Error fetching gallery images:', imagesError);
     else if (images) setGalleryImages(images);
     
+    // Fetch Services
     const { data: servicesData, error: servicesError } = await supabase
       .from('services')
       .select('id, title, description, features, image_url')
       .order('created_at', { ascending: true });
-
     if (servicesError) console.error('Error fetching services:', servicesError);
     else if (servicesData) setServices(servicesData);
 
-    const { data: heroConfig, error: heroError } = await supabase
+    // Fetch Site Config
+    const { data: configData, error: configError } = await supabase
       .from('site_config')
-      .select('value')
-      .eq('key', 'hero_image_url')
-      .single();
+      .select('key, value');
     
-    if (heroError) console.error('Error fetching hero image:', heroError);
-    else if (heroConfig) setHeroImageUrl(heroConfig.value);
-
+    if (configError) {
+        console.error('Error fetching site config:', configError);
+    } else if (configData) {
+        const configObject = configData.reduce((acc, item) => {
+            acc[item.key] = item.value;
+            return acc;
+        }, {} as SiteConfig);
+        setSiteConfig(configObject);
+    }
   }, []);
 
   useEffect(() => {
@@ -113,7 +119,7 @@ export default function AdminPage() {
     checkUserAndFetchData();
   }, [router, fetchContent]);
 
-  const handleContentAdded = () => {
+  const handleContentChanged = () => {
     fetchContent();
   };
 
@@ -164,29 +170,77 @@ export default function AdminPage() {
           Cerrar Sesión
         </Button>
       </div>
-        
+
+      <Card>
+          <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Text className="h-6 w-6" />
+                    <CardTitle className="font-headline text-2xl">
+                    Contenido de la Página Principal
+                    </CardTitle>
+                </div>
+                <EditContentDialog siteConfig={siteConfig} onContentChanged={handleContentChanged} />
+              </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+              <div>
+                <Label className="text-xs uppercase text-muted-foreground">Encabezado Principal</Label>
+                <h3 className="font-semibold">{siteConfig.hero_headline}</h3>
+                <p className="text-sm text-muted-foreground">{siteConfig.hero_subheadline}</p>
+              </div>
+               <div>
+                <Label className="text-xs uppercase text-muted-foreground">Sección "¿Por Qué Elegirnos?"</Label>
+                <h3 className="font-semibold">{siteConfig.why_choose_us_title}</h3>
+                <p className="text-sm text-muted-foreground">{siteConfig.why_choose_us_text}</p>
+              </div>
+              <div>
+                <Label className="text-xs uppercase text-muted-foreground">Biografía del Experto</Label>
+                <h3 className="font-semibold">{siteConfig.bio_title}</h3>
+                <p className="text-sm text-muted-foreground">{siteConfig.bio_subtitle}</p>
+              </div>
+          </CardContent>
+      </Card>
+
       <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ImageIconLucide className="h-6 w-6" />
                 <CardTitle className="font-headline text-2xl">
-                  Imagen Principal
+                  Imágenes de la Página
                 </CardTitle>
               </div>
-              <EditHeroImageDialog onImageChanged={handleContentAdded} currentImageUrl={heroImageUrl} />
             </div>
+             <CardDescription>Gestiona las imágenes principales de tu sitio web.</CardDescription>
           </CardHeader>
-          <CardContent>
-            {heroImageUrl ? (
-                <div className="relative aspect-video w-full overflow-hidden rounded-md border">
-                    <Image src={heroImageUrl} alt="Imagen principal actual" fill sizes="100vw" className="object-cover" />
+          <CardContent className="grid gap-8 md:grid-cols-2">
+            <div>
+                <div className="mb-2 flex items-center justify-between">
+                    <Label className="font-semibold">Imagen de Portada</Label>
+                    <EditHeroImageDialog onImageChanged={handleContentChanged} />
                 </div>
-            ) : (
-                <p className="text-center text-muted-foreground">
-                    No se ha configurado una imagen principal.
-                </p>
-            )}
+                {siteConfig.hero_image_url ? (
+                    <div className="relative aspect-video w-full overflow-hidden rounded-md border">
+                        <Image src={siteConfig.hero_image_url} alt="Imagen principal actual" fill sizes="50vw" className="object-cover" />
+                    </div>
+                ) : (
+                    <p className="text-center text-sm text-muted-foreground">No configurada.</p>
+                )}
+            </div>
+            <div>
+                <div className="mb-2 flex items-center justify-between">
+                    <Label className="font-semibold">Imagen "Por qué elegirnos"</Label>
+                     <EditWhyUsImageDialog onImageChanged={handleContentChanged} />
+                </div>
+                {siteConfig.why_choose_us_image_url ? (
+                    <div className="relative aspect-video w-full overflow-hidden rounded-md border">
+                        <Image src={siteConfig.why_choose_us_image_url} alt="Imagen 'Por qué elegirnos' actual" fill sizes="50vw" className="object-cover" />
+                    </div>
+                ) : (
+                    <p className="text-center text-sm text-muted-foreground">No configurada.</p>
+                )}
+            </div>
           </CardContent>
         </Card>
 
@@ -199,7 +253,7 @@ export default function AdminPage() {
                   Gestionar Servicios
                 </CardTitle>
               </div>
-              <AddServiceDialog onServiceAdded={handleContentAdded} />
+              <AddServiceDialog onServiceAdded={handleContentChanged} />
             </div>
           </CardHeader>
           <CardContent>
@@ -247,7 +301,7 @@ export default function AdminPage() {
                 Gestionar Galería
               </CardTitle>
             </div>
-            <AddImageDialog onImageAdded={handleContentAdded} />
+            <AddImageDialog onImageAdded={handleContentChanged} />
           </div>
         </CardHeader>
         <CardContent>

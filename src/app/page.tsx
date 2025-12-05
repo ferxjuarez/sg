@@ -16,15 +16,10 @@ import {
   Clock,
   LucideProps,
 } from 'lucide-react';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { ComponentType } from 'react';
 
-
-const technicianImage = PlaceHolderImages.find(
-  (p) => p.id === 'technician-bio'
-)!;
 
 // Helper to get Lucide icons dynamically
 const iconMap: { [key: string]: ComponentType<LucideProps> } = {
@@ -59,18 +54,27 @@ export default async function Home() {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
-  const { data: services } = await supabase
-    .from('services')
-    .select('*')
-    .order('created_at');
+  // Fetch all content in parallel
+  const [servicesRes, siteConfigRes] = await Promise.all([
+    supabase.from('services').select('*').order('created_at'),
+    supabase.from('site_config').select('key, value')
+  ]);
 
-  const { data: heroConfig } = await supabase
-      .from('site_config')
-      .select('value')
-      .eq('key', 'hero_image_url')
-      .single();
+  const { data: services } = servicesRes;
+  
+  const siteConfig = siteConfigRes.data?.reduce((acc, curr) => {
+    acc[curr.key] = curr.value;
+    return acc;
+  }, {} as Record<string, string>) ?? {};
 
-  const heroImageUrl = heroConfig?.value ?? PlaceHolderImages.find((p) => p.id === 'hero-background')!.imageUrl;
+  const heroImageUrl = siteConfig.hero_image_url ?? '/images/placeholder.jpg';
+  const heroHeadline = siteConfig.hero_headline ?? 'S&G Excelencia Automotriz';
+  const heroSubheadline = siteConfig.hero_subheadline ?? 'Especialistas en devolver a tu vehículo su apariencia original.';
+  const whyChooseUsImageUrl = siteConfig.why_choose_us_image_url ?? '/images/placeholder.jpg';
+  const whyChooseUsTitle = siteConfig.why_choose_us_title ?? '¿Por Qué Elegirnos?';
+  const whyChooseUsText = siteConfig.why_choose_us_text ?? 'Comprometidos con la calidad y los resultados excepcionales.';
+  const bioTitle = siteConfig.bio_title ?? 'El Experto Detrás de la Excelencia';
+  const bioSubtitle = siteConfig.bio_subtitle ?? 'Una breve biografía del técnico.';
 
 
   return (
@@ -86,11 +90,10 @@ export default async function Home() {
         />
         <div className="relative z-10 mx-auto max-w-4xl p-4">
           <h1 className="mb-4 font-headline text-4xl font-bold drop-shadow-lg md:text-6xl lg:text-7xl">
-            S&G Excelencia Automotriz
+            {heroHeadline}
           </h1>
           <p className="mx-auto mb-8 max-w-2xl text-lg drop-shadow-md md:text-xl">
-            Nos especializamos en la eliminación de abolladuras y el pulido de
-            la pintura de tu automóvil para devolverle su apariencia original.
+            {heroSubheadline}
           </p>
           <Button size="lg" asChild>
             <Link href="/quote">Obtener Cotización Ahora</Link>
@@ -157,9 +160,8 @@ export default async function Home() {
           <div className="md:col-span-2">
             <div className="relative aspect-[4/5] overflow-hidden rounded-lg shadow-lg">
               <Image
-                src={technicianImage.imageUrl}
-                alt={technicianImage.description}
-                data-ai-hint={technicianImage.imageHint}
+                src={whyChooseUsImageUrl}
+                alt="El técnico experto de S&G"
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 40vw"
@@ -169,27 +171,23 @@ export default async function Home() {
           <div className="md:col-span-3">
             <div className="mb-4 flex items-center gap-4">
               <Avatar className="h-16 w-16">
-                <AvatarImage src={technicianImage.imageUrl} alt="Técnico" />
-                <AvatarFallback>M</AvatarFallback>
+                <AvatarImage src={whyChooseUsImageUrl} alt="Técnico" />
+                <AvatarFallback>S&G</AvatarFallback>
               </Avatar>
               <div>
                 <h3 className="font-headline text-xl font-semibold">
-                  El Experto Detrás de la Excelencia
+                  {bioTitle}
                 </h3>
                 <p className="text-muted-foreground">
-                  Una breve biografía del técnico.
+                  {bioSubtitle}
                 </p>
               </div>
             </div>
             <h2 className="mb-4 font-headline text-3xl font-bold md:text-4xl">
-              ¿Por Qué Elegirnos?
+              {whyChooseUsTitle}
             </h2>
             <p className="mb-6 text-muted-foreground">
-              En S&G, nos comprometemos a ofrecerte un servicio de alta
-              calidad con resultados excepcionales. Contamos con un equipo de
-              profesionales altamente capacitados y utilizamos solo los mejores
-              productos y herramientas del mercado. Confía en nosotros para
-              cuidar y mejorar la apariencia de tu vehículo.
+              {whyChooseUsText}
             </p>
             <Button asChild>
               <Link href="/gallery">Ver Nuestros Trabajos</Link>
